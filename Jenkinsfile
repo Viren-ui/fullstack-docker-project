@@ -10,7 +10,8 @@ pipeline {
             steps {
                 script {
                     // Clone the repository
-                    git 'https://github.com/Viren-ui/fullstack-docker-project.git', branch: 'main'
+                    git branch: 'main', url: 'https://github.com/Viren-ui/fullstack-docker-project.git'
+
                 }
             }
         }
