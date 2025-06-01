@@ -43,7 +43,7 @@ pipeline {
                         sh '''
                             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                             docker push vire26/frontend-app
-                            docker push vire26/backend-app}
+                            docker push vire26/backend-app
                         '''
                     }
                 }
