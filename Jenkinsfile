@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        IMAGE_NAME_FRONTEND = 'virenui/frontend-app'
-        IMAGE_NAME_BACKEND = 'virenui/backend-app'
+        IMAGE_NAME_FRONTEND = 'vire26/frontend-app'
+        IMAGE_NAME_BACKEND = 'vire26/backend-app'
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
     }
     stages {
