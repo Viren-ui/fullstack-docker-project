@@ -1,53 +1,75 @@
-peline {
+pipeline {
     agent any
-
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('dockerhub') // Replace 'dockerhub' with your Jenkins Docker Hub credentials ID
-        FRONTEND_IMAGE = 'faysalmehedi/frontend:latest'
-        BACKEND_IMAGE = 'faysalmehedi/backend:latest'
+        IMAGE_NAME_FRONTEND = 'virenui/frontend-app'
+        IMAGE_NAME_BACKEND = 'virenui/backend-app'
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
     }
-
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
                 script {
-                    docker.build("frontend", "./frontend")
-                    docker.build("backend", "./backend")
+                    // Clone the repository
+                    git 'https://github.com/Viren-ui/fullstack-docker-project.git'
                 }
             }
         }
-
-        stage('Push Images to Docker Hub') {
+        stage('Build Frontend Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'DOCKER_HUB_CREDENTIALS') {
-                        docker.image("frontend").push("latest")
-                        docker.image("backend").push("latest")
+                    // Navigate to frontend directory and build Docker image
+                    dir('frontend') {
+                        sh 'docker build -t ${IMAGE_NAME_FRONTEND} .'
                     }
                 }
             }
         }
-
+        stage('Build Backend Docker Image') {
+            steps {
+                script {
+                    // Navigate to backend directory and build Docker image
+                    dir('backend') {
+                        sh 'docker build -t ${IMAGE_NAME_BACKEND} .'
+                    }
+                }
+            }
+        }
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    // Log in to Docker Hub and push images
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh '''
+                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                            docker push ${IMAGE_NAME_FRONTEND}
+                            docker push ${IMAGE_NAME_BACKEND}
+                        '''
+                    }
+                }
+            }
+        }
         stage('Deploy with Docker Compose') {
             steps {
                 script {
-                    sh 'docker-compose down'
-                    sh 'docker-compose up -d'
+                    // Deploy using docker-compose
+                    sh '''
+                        docker-compose -f ${DOCKER_COMPOSE_FILE} down
+                        docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
+                    '''
                 }
             }
         }
     }
-
     post {
         always {
-            echo 'Pipeline Complete!'
+            echo 'Pipeline execution completed.'
+        }
+        success {
+            echo 'Deployment successful.'
+        }
+        failure {
+            echo 'Deployment failed.'
         }
     }
 }
-m
+
